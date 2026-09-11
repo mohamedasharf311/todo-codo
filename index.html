@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول - متتبع المهارات</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  
+  body {
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+    background-size: 400% 400%;
+    animation: aurora 15s ease infinite;
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    color: #fff;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: 
+      radial-gradient(circle at 20% 30%, rgba(0, 198, 255, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.15) 0%, transparent 40%);
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+  
+  @keyframes aurora {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+  
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(5%, -5%) rotate(120deg); }
+    66% { transform: translate(-5%, 5%) rotate(240deg); }
+  }
+  
+  .auth-box {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 20px;
+    padding: 35px;
+    width: 100%;
+    max-width: 420px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    position: relative;
+    z-index: 1;
+    animation: boxIn 0.5s ease;
+  }
+  
+  @keyframes boxIn {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  
+  .logo {
+    text-align: center;
+    font-size: 50px;
+    margin-bottom: 10px;
+  }
+  
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    margin-bottom: 8px;
+    text-shadow: 0 0 20px rgba(0, 198, 255, 0.5);
+  }
+  
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    opacity: 0.7;
+    margin-bottom: 25px;
+  }
+  
+  .tabs {
+    display: flex;
+    gap: 5px;
+    background: rgba(0,0,0,0.3);
+    padding: 5px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+  
+  .tab {
+    flex: 1;
+    padding: 10px;
+    text-align: center;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+    user-select: none;
+    color: rgba(255,255,255,0.6);
+  }
+  
+  .tab.active {
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(0, 198, 255, 0.4);
+  }
+  
+  .form-group {
+    margin-bottom: 15px;
+  }
+  
+  label {
+    display: block;
+    font-size: 13px;
+    margin-bottom: 6px;
+    opacity: 0.85;
+  }
+  
+  input {
+    width: 100%;
+    padding: 13px 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: #fff;
+    font-size: 15px;
+    outline: none;
+    transition: 0.3s;
+  }
+  
+  input::placeholder { color: rgba(255,255,255,0.4); }
+  
+  input:focus {
+    border-color: #00c6ff;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+    background: rgba(255,255,255,0.12);
+  }
+  
+  .submit-btn {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s;
+    margin-top: 10px;
+    box-shadow: 0 4px 15px rgba(0, 198, 255, 0.4);
+  }
+  
+  .submit-btn:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: 0 6px 25px rgba(0, 198, 255, 0.6);
+  }
+  
+  .submit-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .error-msg {
+    background: rgba(255, 82, 82, 0.15);
+    border: 1px solid rgba(255, 82, 82, 0.5);
+    color: #ff8a8a;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 15px;
+    display: none;
+    text-align: center;
+  }
+  
+  .error-msg.show { display: block; }
+  
+  .success-msg {
+    background: rgba(0, 200, 83, 0.15);
+    border: 1px solid rgba(0, 200, 83, 0.5);
+    color: #6effa0;
+    padding: 10px 15px;
+    border-radius: 10px;
+    font-size: 13px;
+    margin-bottom: 15px;
+    display: none;
+    text-align: center;
+  }
+  
+  .success-msg.show { display: block; }
+  
+  .loading-spinner {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  
+  @keyframes spin { to { transform: rotate(360deg); } }
+  
+  .forgot-password {
+    text-align: center;
+    margin-top: 15px;
+  }
+  
+  .forgot-password a {
+    color: #00c6ff;
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+  }
+  
+  .forgot-password a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+  <div class="auth-box">
+    <div class="logo">🎯</div>
+    <h1>متتبع المهارات</h1>
+    <div class="subtitle">سجل دخولك وابدأ رحلتك</div>
+    
+    <div class="tabs">
+      <div class="tab active" id="loginTab" onclick="switchTab('login')">تسجيل الدخول</div>
+      <div class="tab" id="signupTab" onclick="switchTab('signup')">حساب جديد</div>
+    </div>
+    
+    <div class="error-msg" id="errorMsg"></div>
+    <div class="success-msg" id="successMsg"></div>
+    
+    <div class="form-group">
+      <label>📧 البريد الإلكتروني</label>
+      <input type="email" id="emailInput" placeholder="example@email.com" autocomplete="email">
+    </div>
+    
+    <div class="form-group">
+      <label>🔒 كلمة المرور</label>
+      <input type="password" id="passwordInput" placeholder="6 أحرف على الأقل" autocomplete="current-password">
+    </div>
+    
+    <button class="submit-btn" id="submitBtn" onclick="handleSubmit()">
+      <span id="btnText">تسجيل الدخول</span>
+      <span id="btnLoader" style="display:none;"><span class="loading-spinner"></span></span>
+    </button>
+    
+    <div class="forgot-password">
+      <a onclick="resetPassword()">نسيت كلمة المرور؟</a>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { 
+      getAuth, 
+      signInWithEmailAndPassword, 
+      createUserWithEmailAndPassword,
+      sendPasswordResetEmail,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+    
+    // ===== إعدادات Firebase =====
+    const firebaseConfig = {
+      apiKey: "ضع_هنا_API_KEY",
+      authDomain: "ضع_هنا.firebaseapp.com",
+      projectId: "ضع_هنا",
+      storageBucket: "ضع_هنا.appspot.com",
+      messagingSenderId: "ضع_هنا",
+      appId: "ضع_هنا"
+    };
+    
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    
+    let currentMode = 'login';
+    
+    // لو المستخدم مسجل دخول بالفعل → روح للصفحة الرئيسية
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        window.location.href = 'app.html';
+      }
+    });
+    
+    window.switchTab = function(mode) {
+      currentMode = mode;
+      document.getElementById('loginTab').classList.toggle('active', mode === 'login');
+      document.getElementById('signupTab').classList.toggle('active', mode === 'signup');
+      document.getElementById('btnText').textContent = mode === 'login' ? 'تسجيل الدخول' : 'إنشاء حساب';
+      document.getElementById('passwordInput').autocomplete = mode === 'login' ? 'current-password' : 'new-password';
+      hideMessages();
+    };
+    
+    function showError(msg) {
+      const el = document.getElementById('errorMsg');
+      el.textContent = msg;
+      el.classList.add('show');
+      document.getElementById('successMsg').classList.remove('show');
+    }
+    
+    function showSuccess(msg) {
+      const el = document.getElementById('successMsg');
+      el.textContent = msg;
+      el.classList.add('show');
+      document.getElementById('errorMsg').classList.remove('show');
+    }
+    
+    function hideMessages() {
+      document.getElementById('errorMsg').classList.remove('show');
+      document.getElementById('successMsg').classList.remove('show');
+    }
+    
+    function setLoading(loading) {
+      document.getElementById('submitBtn').disabled = loading;
+      document.getElementById('btnText').style.display = loading ? 'none' : 'inline';
+      document.getElementById('btnLoader').style.display = loading ? 'inline' : 'none';
+    }
+    
+    function getErrorMsg(code) {
+      const messages = {
+        'auth/invalid-email': 'البريد الإلكتروني غير صحيح',
+        'auth/user-not-found': 'لا يوجد حساب بهذا البريد',
+        'auth/wrong-password': 'كلمة المرور غير صحيحة',
+        'auth/invalid-credential': 'البريد أو كلمة المرور غير صحيحة',
+        'auth/email-already-in-use': 'البريد الإلكتروني مستخدم بالفعل',
+        'auth/weak-password': 'كلمة المرور ضعيفة (6 أحرف على الأقل)',
+        'auth/too-many-requests': 'محاولات كثيرة، حاول بعد قليل',
+        'auth/network-request-failed': 'خطأ في الاتصال بالإنترنت',
+        'auth/missing-password': 'اكتب كلمة المرور'
+      };
+      return messages[code] || 'حدث خطأ غير متوقع: ' + code;
+    }
+    
+    window.handleSubmit = async function() {
+      const email = document.getElementById('emailInput').value.trim();
+      const password = document.getElementById('passwordInput').value;
+      
+      hideMessages();
+      
+      if (!email) return showError('اكتب البريد الإلكتروني');
+      if (!password) return showError('اكتب كلمة المرور');
+      if (currentMode === 'signup' && password.length < 6) 
+        return showError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      
+      setLoading(true);
+      
+      try {
+        if (currentMode === 'login') {
+          await signInWithEmailAndPassword(auth, email, password);
+          window.location.href = 'app.html';
+        } else {
+          await createUserWithEmailAndPassword(auth, email, password);
+          window.location.href = 'app.html';
+        }
+      } catch (err) {
+        showError(getErrorMsg(err.code));
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    window.resetPassword = async function() {
+      const email = document.getElementById('emailInput').value.trim();
+      if (!email) return showError('اكتب البريد الإلكتروني الأول لإرسال رابط الاستعادة');
+      
+      try {
+        await sendPasswordResetEmail(auth, email);
+        showSuccess('تم إرسال رابط استعادة كلمة المرور على بريدك ✅');
+      } catch (err) {
+        showError(getErrorMsg(err.code));
+      }
+    };
+    
+    // Enter key
+    document.getElementById('emailInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') document.getElementById('passwordInput').focus();
+    });
+    document.getElementById('passwordInput').addEventListener('keypress', e => {
+      if (e.key === 'Enter') handleSubmit();
+    });
+  </script>
+</body>
+</html>
