@@ -66,11 +66,7 @@
     to { opacity: 1; transform: translateY(0); }
   }
   
-  .logo {
-    text-align: center;
-    font-size: 50px;
-    margin-bottom: 10px;
-  }
+  .logo { text-align: center; font-size: 50px; margin-bottom: 10px; }
   
   h1 {
     text-align: center;
@@ -114,9 +110,7 @@
     box-shadow: 0 4px 15px rgba(0, 198, 255, 0.4);
   }
   
-  .form-group {
-    margin-bottom: 15px;
-  }
+  .form-group { margin-bottom: 15px; }
   
   label {
     display: block;
@@ -165,10 +159,7 @@
     box-shadow: 0 6px 25px rgba(0, 198, 255, 0.6);
   }
   
-  .submit-btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-  }
+  .submit-btn:disabled { opacity: 0.6; cursor: not-allowed; }
   
   .error-msg {
     background: rgba(255, 82, 82, 0.15);
@@ -212,10 +203,7 @@
   
   @keyframes spin { to { transform: rotate(360deg); } }
   
-  .forgot-password {
-    text-align: center;
-    margin-top: 15px;
-  }
+  .forgot-password { text-align: center; margin-top: 15px; }
   
   .forgot-password a {
     color: #00c6ff;
@@ -261,7 +249,6 @@
     </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
     import { 
@@ -272,7 +259,7 @@
       onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
     
-    // ===== إعدادات Firebase =====
+    // ===== ⚠️ ضع بيانات Firebase هنا =====
     const firebaseConfig = {
       apiKey: "AIzaSyD6xACvN1UD1cHGZbC2eSU-V48i6IjQg5o",
       authDomain: "todo-codo.firebaseapp.com",
@@ -286,11 +273,13 @@
     const auth = getAuth(app);
     
     let currentMode = 'login';
+    let redirected = false;
     
-    // لو المستخدم مسجل دخول بالفعل → روح للصفحة الرئيسية
+    // ===== لو المستخدم مسجل دخول بالفعل → روح للصفحة الرئيسية =====
     onAuthStateChanged(auth, (user) => {
-      if (user) {
-        window.location.href = 'app.html';
+      if (user && !redirected) {
+        redirected = true;
+        window.location.replace('app.html');
       }
     });
     
@@ -338,9 +327,11 @@
         'auth/weak-password': 'كلمة المرور ضعيفة (6 أحرف على الأقل)',
         'auth/too-many-requests': 'محاولات كثيرة، حاول بعد قليل',
         'auth/network-request-failed': 'خطأ في الاتصال بالإنترنت',
-        'auth/missing-password': 'اكتب كلمة المرور'
+        'auth/missing-password': 'اكتب كلمة المرور',
+        'auth/unauthorized-domain': 'هذا الدومين غير مصرح به في Firebase',
+        'auth/operation-not-allowed': 'طريقة تسجيل الدخول غير مفعلة (فعّل Email/Password في Firebase)'
       };
-      return messages[code] || 'حدث خطأ غير متوقع: ' + code;
+      return messages[code] || 'حدث خطأ: ' + code;
     }
     
     window.handleSubmit = async function() {
@@ -359,14 +350,13 @@
       try {
         if (currentMode === 'login') {
           await signInWithEmailAndPassword(auth, email, password);
-          window.location.href = 'app.html';
         } else {
           await createUserWithEmailAndPassword(auth, email, password);
-          window.location.href = 'app.html';
         }
+        // ✅ onAuthStateChanged هيتولى التحويل لـ app.html
       } catch (err) {
+        console.error('Auth error:', err);
         showError(getErrorMsg(err.code));
-      } finally {
         setLoading(false);
       }
     };
