@@ -1,0 +1,1345 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>متتبع المهارات</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, sans-serif; }
+  
+  body {
+    background: linear-gradient(-45deg, #0f0c29, #302b63, #24243e, #1a1a2e);
+    background-size: 400% 400%;
+    animation: aurora 15s ease infinite;
+    min-height: 100vh;
+    padding: 20px;
+    color: #fff;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: 
+      radial-gradient(circle at 20% 30%, rgba(0, 198, 255, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 80% 70%, rgba(255, 0, 128, 0.15) 0%, transparent 40%),
+      radial-gradient(circle at 50% 50%, rgba(138, 43, 226, 0.15) 0%, transparent 40%);
+    animation: float 20s ease-in-out infinite;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  @keyframes aurora {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    33% { transform: translate(5%, -5%) rotate(120deg); }
+    66% { transform: translate(-5%, 5%) rotate(240deg); }
+  }
+  
+  .container { 
+    max-width: 800px; 
+    margin: 0 auto;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 15px;
+    padding: 12px 18px;
+  }
+  
+  .user-info {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .user-avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #00c6ff, #0072ff);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 18px;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+    flex-shrink: 0;
+  }
+  
+  .user-email {
+    font-size: 13px;
+    opacity: 0.85;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .logout-btn {
+    padding: 8px 16px;
+    background: rgba(255, 82, 82, 0.8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: bold;
+    transition: 0.3s;
+    flex-shrink: 0;
+  }
+  
+  .logout-btn:hover {
+    background: #ff5252;
+    box-shadow: 0 0 15px rgba(255, 82, 82, 0.6);
+  }
+  
+  h1 { 
+    text-align: center; 
+    margin-bottom: 20px; 
+    font-size: 28px;
+    text-shadow: 0 0 20px rgba(0, 198, 255, 0.5);
+  }
+  
+  .overall-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 20px;
+    margin-bottom: 20px;
+    border: 1px solid rgba(255,255,255,0.15);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+  }
+  
+  .overall-card h2 { font-size: 18px; margin-bottom: 10px; }
+  
+  .progress-bar {
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+    height: 28px;
+    overflow: hidden;
+    position: relative;
+    margin: 10px 0;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #00c6ff, #0072ff);
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: bold;
+    font-size: 14px;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.6);
+  }
+  
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 12px;
+    margin-top: 15px;
+  }
+  
+  .stat-card {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 12px;
+    padding: 12px 8px;
+    text-align: center;
+    transition: 0.3s;
+  }
+  
+  .stat-card:hover {
+    background: rgba(255,255,255,0.1);
+    transform: translateY(-2px);
+  }
+  
+  .stat-value { 
+    font-size: 26px; 
+    font-weight: bold; 
+    color: #00e5ff;
+    text-shadow: 0 0 10px rgba(0, 229, 255, 0.5);
+    line-height: 1.2;
+  }
+  
+  .stat-label { font-size: 12px; opacity: 0.85; margin-top: 4px; }
+  
+  .add-section {
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.15);
+    border-radius: 15px;
+    padding: 15px;
+    margin-bottom: 20px;
+    backdrop-filter: blur(15px);
+  }
+  
+  .add-row { display: flex; gap: 10px; margin-bottom: 10px; }
+  
+  .add-section input[type="text"] {
+    flex: 1;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    font-size: 16px;
+    outline: none;
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+  }
+  
+  .add-section input[type="text"]::placeholder { color: rgba(255,255,255,0.5); }
+  
+  .add-section input[type="text"]:focus {
+    border-color: #00c6ff;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.4);
+  }
+  
+  .add-section button {
+    padding: 12px 25px;
+    background: linear-gradient(135deg, #00c853, #00a844);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  
+  .add-section button:hover { transform: scale(1.05); }
+  
+  .priority-label { font-size: 13px; opacity: 0.85; margin-bottom: 8px; display: block; }
+  
+  .priority-options { display: flex; gap: 8px; flex-wrap: wrap; }
+  
+  .priority-option {
+    flex: 1;
+    min-width: 100px;
+    padding: 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+    border: 2px solid transparent;
+    user-select: none;
+  }
+  
+  .priority-option[data-priority="normal"] {
+    background: rgba(0, 198, 255, 0.1);
+    border-color: rgba(0, 198, 255, 0.3);
+    color: #00e5ff;
+  }
+  
+  .priority-option[data-priority="important"] {
+    background: rgba(255, 152, 0, 0.1);
+    border-color: rgba(255, 152, 0, 0.3);
+    color: #ffa500;
+  }
+  
+  .priority-option[data-priority="critical"] {
+    background: rgba(255, 82, 82, 0.1);
+    border-color: rgba(255, 82, 82, 0.3);
+    color: #ff5252;
+  }
+  
+  .priority-option.active[data-priority="normal"] {
+    background: rgba(0, 198, 255, 0.3);
+    border-color: #00e5ff;
+    box-shadow: 0 0 15px rgba(0, 198, 255, 0.5);
+  }
+  
+  .priority-option.active[data-priority="important"] {
+    background: rgba(255, 152, 0, 0.3);
+    border-color: #ffa500;
+    box-shadow: 0 0 15px rgba(255, 152, 0, 0.5);
+  }
+  
+  .priority-option.active[data-priority="critical"] {
+    background: rgba(255, 82, 82, 0.3);
+    border-color: #ff5252;
+    box-shadow: 0 0 15px rgba(255, 82, 82, 0.5);
+  }
+  
+  .skill-card {
+    background: rgba(255,255,255,0.08);
+    backdrop-filter: blur(15px);
+    border-radius: 15px;
+    padding: 18px;
+    margin-bottom: 15px;
+    border: 1px solid rgba(255,255,255,0.15);
+    transition: 0.3s;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .skill-card[data-priority="normal"] { border-color: rgba(0, 198, 255, 0.3); }
+  .skill-card[data-priority="normal"]:hover {
+    border-color: rgba(0, 198, 255, 0.6);
+    box-shadow: 0 10px 30px rgba(0, 198, 255, 0.25);
+  }
+  
+  .skill-card[data-priority="important"] {
+    background: rgba(255, 152, 0, 0.08);
+    border: 1px solid rgba(255, 152, 0, 0.5);
+  }
+  
+  .skill-card[data-priority="important"]:hover {
+    border-color: rgba(255, 152, 0, 0.8);
+    box-shadow: 0 10px 30px rgba(255, 152, 0, 0.35);
+  }
+  
+  .skill-card[data-priority="critical"] {
+    background: rgba(255, 82, 82, 0.1);
+    border: 2px solid rgba(255, 82, 82, 0.7);
+    animation: criticalPulse 3s ease-in-out infinite;
+  }
+  
+  .skill-card[data-priority="critical"]:hover {
+    border-color: #ff5252;
+    box-shadow: 0 10px 40px rgba(255, 82, 82, 0.5);
+  }
+  
+  @keyframes criticalPulse {
+    0%, 100% { box-shadow: 0 4px 25px rgba(255, 82, 82, 0.3); }
+    50% { box-shadow: 0 4px 35px rgba(255, 82, 82, 0.55); }
+  }
+  
+  .skill-card[data-priority="critical"]::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(180deg, #ff5252, #d32f2f);
+    box-shadow: 0 0 15px rgba(255, 82, 82, 0.8);
+  }
+  
+  .skill-card[data-priority="important"]::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 5px;
+    height: 100%;
+    background: linear-gradient(180deg, #ffa500, #ff6f00);
+  }
+  
+  .skill-card[data-priority="normal"]::before {
+    content: '';
+    position: absolute;
+    top: 0; right: 0;
+    width: 4px;
+    height: 100%;
+    background: linear-gradient(180deg, #00c6ff, #0072ff);
+  }
+  
+  .priority-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: bold;
+    margin-left: 8px;
+    vertical-align: middle;
+  }
+  
+  .priority-badge[data-priority="normal"] {
+    background: rgba(0, 198, 255, 0.2);
+    color: #00e5ff;
+    border: 1px solid rgba(0, 198, 255, 0.5);
+  }
+  
+  .priority-badge[data-priority="important"] {
+    background: rgba(255, 152, 0, 0.25);
+    color: #ffa500;
+    border: 1px solid rgba(255, 152, 0, 0.6);
+  }
+  
+  .priority-badge[data-priority="critical"] {
+    background: rgba(255, 82, 82, 0.3);
+    color: #ff5252;
+    border: 1px solid rgba(255, 82, 82, 0.7);
+    animation: badgeBlink 1.5s ease-in-out infinite;
+  }
+  
+  @keyframes badgeBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  
+  .skill-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .skill-name-wrap {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex: 1;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+  
+  .skill-name { font-size: 18px; font-weight: bold; word-break: break-word; }
+  
+  .skill-card[data-priority="critical"] .skill-name {
+    color: #ff6b6b;
+    text-shadow: 0 0 10px rgba(255, 82, 82, 0.5);
+  }
+  
+  .skill-card[data-priority="important"] .skill-name { color: #ffb84d; }
+  
+  .edit-name-btn {
+    background: rgba(255, 193, 7, 0.2);
+    color: #ffc107;
+    border: 1px solid rgba(255, 193, 7, 0.4);
+    border-radius: 6px;
+    padding: 4px 8px;
+    cursor: pointer;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+  
+  .edit-name-btn:hover { background: rgba(255, 193, 7, 0.4); }
+  
+  .skill-percent-big {
+    font-size: 22px;
+    font-weight: bold;
+    color: #00e5ff;
+    text-shadow: 0 0 15px rgba(0, 229, 255, 0.6);
+  }
+  
+  .skill-card[data-priority="critical"] .skill-percent-big {
+    color: #ff6b6b;
+    text-shadow: 0 0 15px rgba(255, 82, 82, 0.6);
+  }
+  
+  .delete-btn {
+    background: rgba(255, 82, 82, 0.8);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  
+  .delete-btn:hover { background: #ff5252; }
+  
+  .skill-progress {
+    background: rgba(0,0,0,0.4);
+    border-radius: 10px;
+    height: 24px;
+    overflow: hidden;
+    margin: 8px 0;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  
+  .skill-progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #ff6b6b, #ffa500, #00c853);
+    transition: width 0.5s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: bold;
+    text-shadow: 0 1px 3px rgba(0,0,0,0.5);
+  }
+  
+  .skill-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    margin-top: 12px;
+  }
+  
+  .skill-stat {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 10px;
+    padding: 8px 5px;
+    text-align: center;
+  }
+  
+  .skill-stat-value {
+    font-size: 18px;
+    font-weight: bold;
+    color: #ffa500;
+  }
+  
+  .skill-stat-label { font-size: 11px; opacity: 0.75; margin-top: 2px; }
+  
+  .skill-actions { display: flex; gap: 8px; margin-top: 12px; flex-wrap: wrap; }
+  
+  .done-btn {
+    flex: 1;
+    min-width: 120px;
+    padding: 10px;
+    background: linear-gradient(135deg, #0072ff, #00c6ff);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  
+  .done-btn:hover:not(:disabled) { transform: scale(1.02); }
+  
+  .done-btn:disabled {
+    background: linear-gradient(135deg, #666, #888);
+    cursor: not-allowed;
+    opacity: 0.7;
+  }
+  
+  .undo-btn, .history-btn, .priority-btn {
+    flex: 0.6;
+    padding: 10px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 14px;
+    font-weight: bold;
+    transition: 0.3s;
+  }
+  
+  .undo-btn {
+    background: linear-gradient(135deg, #ff9800, #ff5722);
+    color: white;
+  }
+  
+  .undo-btn:disabled { background: #444; cursor: not-allowed; opacity: 0.5; }
+  
+  .history-btn {
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    border: 1px solid rgba(255,255,255,0.25);
+  }
+  
+  .history-btn:hover { background: rgba(255,255,255,0.2); }
+  
+  .priority-btn {
+    background: rgba(156, 39, 176, 0.2);
+    color: #ce93d8;
+    border: 1px solid rgba(156, 39, 176, 0.5);
+  }
+  
+  .priority-btn:hover { background: rgba(156, 39, 176, 0.4); }
+  
+  .target-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+    font-size: 13px;
+    opacity: 0.9;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  
+  .target-row input {
+    width: 65px;
+    padding: 4px 8px;
+    border-radius: 6px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    text-align: center;
+  }
+  
+  .empty-msg, .loading-msg { text-align: center; padding: 40px; opacity: 0.7; font-size: 16px; }
+  
+  .modal-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  
+  .modal-overlay.active { display: flex; }
+  
+  .modal-box {
+    background: rgba(30, 25, 60, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 18px;
+    padding: 25px;
+    max-width: 500px;
+    width: 100%;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    animation: modalIn 0.3s ease;
+  }
+  
+  @keyframes modalIn {
+    from { opacity: 0; transform: scale(0.9) translateY(20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+  
+  .modal-title {
+    font-size: 20px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    text-align: center;
+    color: #00e5ff;
+  }
+  
+  .modal-subtitle {
+    font-size: 14px;
+    text-align: center;
+    opacity: 0.8;
+    margin-bottom: 18px;
+  }
+  
+  .date-list { display: flex; flex-direction: column; gap: 8px; margin-bottom: 18px; }
+  
+  .date-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(255,255,255,0.12);
+    border-radius: 10px;
+    padding: 10px 14px;
+  }
+  
+  .date-text { font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  
+  .date-badge {
+    font-size: 11px;
+    background: rgba(0, 198, 255, 0.2);
+    color: #00e5ff;
+    padding: 2px 8px;
+    border-radius: 20px;
+    border: 1px solid rgba(0, 198, 255, 0.4);
+  }
+  
+  .remove-date-btn {
+    background: rgba(255, 82, 82, 0.8);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    font-size: 12px;
+  }
+  
+  .close-modal-btn {
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(135deg, #0072ff, #00c6ff);
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+  }
+  
+  .edit-name-input {
+    width: 100%;
+    padding: 12px 15px;
+    border-radius: 10px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.1);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 15px;
+  }
+  
+  .modal-actions { display: flex; gap: 10px; }
+  
+  .modal-actions button {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+  }
+  
+  .save-btn { background: linear-gradient(135deg, #00c853, #00a844); color: white; }
+  .cancel-btn { background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.2); }
+  
+  .modal-priority-options { display: flex; flex-direction: column; gap: 10px; margin-bottom: 18px; }
+  
+  .modal-priority-option {
+    padding: 15px;
+    border-radius: 12px;
+    cursor: pointer;
+    text-align: center;
+    font-size: 15px;
+    font-weight: bold;
+    transition: 0.3s;
+    border: 2px solid transparent;
+    user-select: none;
+  }
+  
+  .modal-priority-option[data-priority="normal"] {
+    background: rgba(0, 198, 255, 0.1);
+    border-color: rgba(0, 198, 255, 0.3);
+    color: #00e5ff;
+  }
+  
+  .modal-priority-option[data-priority="important"] {
+    background: rgba(255, 152, 0, 0.1);
+    border-color: rgba(255, 152, 0, 0.3);
+    color: #ffa500;
+  }
+  
+  .modal-priority-option[data-priority="critical"] {
+    background: rgba(255, 82, 82, 0.1);
+    border-color: rgba(255, 82, 82, 0.3);
+    color: #ff5252;
+  }
+  
+  .modal-priority-option.active[data-priority="normal"] {
+    background: rgba(0, 198, 255, 0.3);
+    border-color: #00e5ff;
+  }
+  
+  .modal-priority-option.active[data-priority="important"] {
+    background: rgba(255, 152, 0, 0.3);
+    border-color: #ffa500;
+  }
+  
+  .modal-priority-option.active[data-priority="critical"] {
+    background: rgba(255, 82, 82, 0.3);
+    border-color: #ff5252;
+  }
+  
+  .sync-indicator {
+    font-size: 12px;
+    opacity: 0.7;
+    text-align: center;
+    padding: 8px;
+    transition: 0.3s;
+  }
+  
+  .sync-indicator.syncing { color: #ffa500; }
+  .sync-indicator.synced { color: #00c853; }
+</style>
+</head>
+<body>
+<div class="container">
+  <!-- شريط المستخدم -->
+  <div class="top-bar">
+    <div class="user-info">
+      <div class="user-avatar" id="userAvatar">?</div>
+      <div class="user-email" id="userEmail">جاري التحميل...</div>
+    </div>
+    <button class="logout-btn" onclick="handleLogout()">🚪 خروج</button>
+  </div>
+  
+  <h1>🎯 متتبع المهارات</h1>
+  
+  <div class="sync-indicator" id="syncIndicator">✅ متزامن</div>
+  
+  <div class="overall-card">
+    <h2>📊 التقدم الكلي</h2>
+    <div class="progress-bar">
+      <div class="progress-fill" id="overallFill">0%</div>
+    </div>
+    
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-value" id="overallPercent">0%</div>
+        <div class="stat-label">التقدم الكلي</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="completedPercent">0%</div>
+        <div class="stat-label">مهارات مكتملة</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="todayPercent">0%</div>
+        <div class="stat-label">إنجاز اليوم</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-value" id="avgStreakPercent">0%</div>
+        <div class="stat-label">متوسط الاستمرارية</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="add-section">
+    <div class="add-row">
+      <input type="text" id="skillInput" placeholder="اكتب اسم المهارة الجديدة..." onkeypress="if(event.key==='Enter') addSkill()">
+      <button onclick="addSkill()">+ إضافة</button>
+    </div>
+    
+    <span class="priority-label">🎚️ اختار الأهمية:</span>
+    <div class="priority-options">
+      <div class="priority-option" data-priority="normal" onclick="selectNewPriority('normal')">🔵 عادي</div>
+      <div class="priority-option" data-priority="important" onclick="selectNewPriority('important')">🟠 مهم</div>
+      <div class="priority-option active" data-priority="critical" onclick="selectNewPriority('critical')">🔴 مهم جداً</div>
+    </div>
+  </div>
+  
+  <div id="skillsList">
+    <div class="loading-msg">⏳ جاري تحميل مهاراتك...</div>
+  </div>
+</div>
+
+<!-- مودال السجل -->
+<div class="modal-overlay" id="historyModal">
+  <div class="modal-box">
+    <div class="modal-title" id="historyTitle">📅 سجل الأيام</div>
+    <div class="date-list" id="dateList"></div>
+    <button class="close-modal-btn" onclick="closeHistory()">إغلاق</button>
+  </div>
+</div>
+
+<!-- مودال تعديل الاسم -->
+<div class="modal-overlay" id="editNameModal">
+  <div class="modal-box">
+    <div class="modal-title">✏️ تعديل اسم المهارة</div>
+    <input type="text" class="edit-name-input" id="editNameInput" placeholder="الاسم الجديد...">
+    <div class="modal-actions">
+      <button class="save-btn" onclick="saveEditedName()">💾 حفظ</button>
+      <button class="cancel-btn" onclick="closeEditName()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<!-- مودال تعديل الأولوية -->
+<div class="modal-overlay" id="priorityModal">
+  <div class="modal-box">
+    <div class="modal-title">🎚️ تعديل الأولوية</div>
+    <div class="modal-priority-options">
+      <div class="modal-priority-option" data-priority="normal" onclick="selectModalPriority('normal')">🔵 عادي</div>
+      <div class="modal-priority-option" data-priority="important" onclick="selectModalPriority('important')">🟠 مهم</div>
+      <div class="modal-priority-option" data-priority="critical" onclick="selectModalPriority('critical')">🔴 مهم جداً</div>
+    </div>
+    <div class="modal-actions">
+      <button class="save-btn" onclick="saveEditedPriority()">💾 حفظ</button>
+      <button class="cancel-btn" onclick="closeEditPriority()">إلغاء</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { 
+    getAuth, 
+    onAuthStateChanged, 
+    signOut 
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+  import {
+    getFirestore,
+    collection,
+    doc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    onSnapshot,
+    query,
+    orderBy,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+  
+  // ===== إعدادات Firebase =====
+  const firebaseConfig = {
+    apiKey: "ضع_هنا_API_KEY",
+    authDomain: "ضع_هنا.firebaseapp.com",
+    projectId: "ضع_هنا",
+    storageBucket: "ضع_هنا.appspot.com",
+    messagingSenderId: "ضع_هنا",
+    appId: "ضع_هنا"
+  };
+  
+  const app = initializeApp(firebaseConfig);
+  const auth = getAuth(app);
+  const db = getFirestore(app);
+  
+  // ===== متغيرات عامة =====
+  let currentUser = null;
+  let appData = { skills: [] };
+  let unsubscribeSnapshot = null;
+  let editingSkillId = null;
+  let historySkillId = null;
+  let prioritySkillId = null;
+  let newSkillPriority = 'critical';
+  let selectedModalPriority = 'normal';
+  
+  const PRIORITY_ORDER = { critical: 3, important: 2, normal: 1 };
+  const PRIORITY_NAMES = { critical: '🔴 مهم جداً', important: '🟠 مهم', normal: '🔵 عادي' };
+  
+  // ===== إدارة جلسة المستخدم =====
+  onAuthStateChanged(auth, (user) => {
+    if (user) {
+      currentUser = user;
+      document.getElementById('userEmail').textContent = user.email;
+      document.getElementById('userAvatar').textContent = user.email[0].toUpperCase();
+      startListeningToSkills();
+    } else {
+      window.location.href = 'index.html';
+    }
+  });
+  
+  // ===== الاستماع للمهارات في الوقت الفعلي =====
+  function startListeningToSkills() {
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    
+    const skillsRef = collection(db, 'users', currentUser.uid, 'skills');
+    
+    unsubscribeSnapshot = onSnapshot(skillsRef, (snapshot) => {
+      appData.skills = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          name: data.name || '',
+          completedDates: data.completedDates || [],
+          targetDays: data.targetDays || 30,
+          priority: data.priority || 'normal'
+        };
+      });
+      render();
+      setSyncStatus('synced');
+    }, (error) => {
+      console.error('خطأ في تحميل المهارات:', error);
+      setSyncStatus('error');
+    });
+  }
+  
+  function setSyncStatus(status) {
+    const el = document.getElementById('syncIndicator');
+    if (status === 'syncing') {
+      el.textContent = '⏳ جاري الحفظ...';
+      el.className = 'sync-indicator syncing';
+    } else if (status === 'synced') {
+      el.textContent = '✅ متزامن مع السحابة';
+      el.className = 'sync-indicator synced';
+    } else {
+      el.textContent = '⚠️ خطأ في الاتصال';
+      el.className = 'sync-indicator';
+    }
+  }
+  
+  // ===== الحصول على مرجع مهارة =====
+  function getSkillRef(skillId) {
+    return doc(db, 'users', currentUser.uid, 'skills', skillId);
+  }
+  
+  // ===== إضافة مهارة =====
+  window.addSkill = async function() {
+    const input = document.getElementById('skillInput');
+    const name = input.value.trim();
+    if (!name) return alert('اكتب اسم المهارة أولاً');
+    
+    setSyncStatus('syncing');
+    input.value = '';
+    
+    try {
+      await addDoc(collection(db, 'users', currentUser.uid, 'skills'), {
+        name: name,
+        completedDates: [],
+        targetDays: 30,
+        priority: newSkillPriority,
+        createdAt: serverTimestamp()
+      });
+    } catch (err) {
+      console.error(err);
+      alert('خطأ في الحفظ، حاول تاني');
+      setSyncStatus('error');
+    }
+  };
+  
+  // ===== حذف مهارة =====
+  window.deleteSkill = async function(id) {
+    if (!confirm('هل تريد حذف هذه المهارة؟')) return;
+    setSyncStatus('syncing');
+    try {
+      await deleteDoc(getSkillRef(id));
+    } catch (err) {
+      console.error(err);
+      alert('خطأ في الحذف');
+    }
+  };
+  
+  // ===== إنجاز اليوم =====
+  window.markDone = async function(id) {
+    const skill = appData.skills.find(s => s.id === id);
+    if (!skill) return;
+    
+    const today = getToday();
+    if (skill.completedDates.includes(today)) return;
+    
+    setSyncStatus('syncing');
+    const newDates = [...skill.completedDates, today];
+    
+    try {
+      await updateDoc(getSkillRef(id), { completedDates: newDates });
+    } catch (err) {
+      console.error(err);
+      alert('خطأ في الحفظ');
+    }
+  };
+  
+  // ===== التراجع عن آخر يوم =====
+  window.undoLastDone = async function(id) {
+    const skill = appData.skills.find(s => s.id === id);
+    if (!skill || skill.completedDates.length === 0) return;
+    
+    const today = getToday();
+    const lastDate = [...skill.completedDates].sort().reverse()[0];
+    
+    const msg = lastDate === today 
+      ? 'هل تريد التراجع عن إنجاز اليوم؟' 
+      : `هل تريد حذف آخر يوم (${formatDate(lastDate)})؟`;
+    
+    if (!confirm(msg)) return;
+    
+    setSyncStatus('syncing');
+    const newDates = skill.completedDates.filter(d => d !== lastDate);
+    
+    try {
+      await updateDoc(getSkillRef(id), { completedDates: newDates });
+    } catch (err) {
+      console.error(err);
+    }
+  };
+  
+  // ===== تعديل الهدف =====
+  window.changeTarget = async function(id, val) {
+    const n = parseInt(val);
+    if (!(n > 0 && n <= 365)) return;
+    setSyncStatus('syncing');
+    try {
+      await updateDoc(getSkillRef(id), { targetDays: n });
+    } catch (err) { console.error(err); }
+  };
+  
+  // ===== السجل =====
+  window.openHistory = function(id) {
+    const skill = appData.skills.find(s => s.id === id);
+    if (!skill) return;
+    
+    historySkillId = id;
+    document.getElementById('historyTitle').textContent = `📅 سجل: ${skill.name}`;
+    
+    const sorted = [...skill.completedDates].sort().reverse();
+    
+    if (sorted.length === 0) {
+      document.getElementById('dateList').innerHTML = 
+        '<div style="text-align:center;opacity:0.6;padding:20px;">لسه مفيش أيام مسجلة</div>';
+    } else {
+      document.getElementById('dateList').innerHTML = sorted.map(date => {
+        const isToday = date === getToday();
+        return `
+          <div class="date-item">
+            <div class="date-text">
+              ${isToday ? '🟢' : '📆'} ${formatDate(date)}
+              ${isToday ? '<span class="date-badge">اليوم</span>' : ''}
+            </div>
+            <button class="remove-date-btn" onclick="removeDate('${id}', '${date}')">🗑 حذف</button>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    document.getElementById('historyModal').classList.add('active');
+  };
+  
+  window.closeHistory = function() {
+    document.getElementById('historyModal').classList.remove('active');
+    historySkillId = null;
+  };
+  
+  window.removeDate = async function(id, date) {
+    if (!confirm(`هل تريد حذف يوم ${formatDate(date)}؟`)) return;
+    const skill = appData.skills.find(s => s.id === id);
+    if (!skill) return;
+    
+    setSyncStatus('syncing');
+    const newDates = skill.completedDates.filter(d => d !== date);
+    
+    try {
+      await updateDoc(getSkillRef(id), { completedDates: newDates });
+      setTimeout(() => openHistory(id), 300);
+    } catch (err) { console.error(err); }
+  };
+  
+  // ===== تعديل الاسم =====
+  window.openEditName = function(id) {
+    const skill = appData.skills.find(s => s.id === id);
+    if (!skill) return;
+    editingSkillId = id;
+    document.getElementById('editNameInput').value = skill.name;
+    document.getElementById('editNameModal').classList.add('active');
+    setTimeout(() => {
+      const inp = document.getElementById('editNameInput');
+      inp.focus();
+      inp.select();
+    }, 100);
+  };
+  
+  window.closeEditName = function() {
+    document.getElementById('editNameModal').classList.remove('active');
+    editingSkillId = null;
+  };
+  
+  window.saveEditedName = async function() {
+    const newName = document.getElementById('editNameInput').value.trim();
+    if (!newName) return alert('اكتب الاسم');
+    
+    setSyncStatus('syncing');
+    try {
+      await updateDoc(getSkillRef(editingSkillId), { name: newName });
+    } catch (err) { console.error(err); }
+    closeEditName();
+  };
+  
+  // ===== تعديل الأولوية =====
+  window.openEditPriority = function(id) {
+    const skill = appData.skills.find(s => s.id === id);
+    if (!skill) return;
+    prioritySkillId = id;
+    selectedModalPriority = skill.priority;
+    document.querySelectorAll('.modal-priority-option').forEach(el => {
+      el.classList.toggle('active', el.dataset.priority === skill.priority);
+    });
+    document.getElementById('priorityModal').classList.add('active');
+  };
+  
+  window.selectModalPriority = function(p) {
+    selectedModalPriority = p;
+    document.querySelectorAll('.modal-priority-option').forEach(el => {
+      el.classList.toggle('active', el.dataset.priority === p);
+    });
+  };
+  
+  window.closeEditPriority = function() {
+    document.getElementById('priorityModal').classList.remove('active');
+    prioritySkillId = null;
+  };
+  
+  window.saveEditedPriority = async function() {
+    setSyncStatus('syncing');
+    try {
+      await updateDoc(getSkillRef(prioritySkillId), { priority: selectedModalPriority });
+    } catch (err) { console.error(err); }
+    closeEditPriority();
+  };
+  
+  window.selectNewPriority = function(p) {
+    newSkillPriority = p;
+    document.querySelectorAll('.priority-option').forEach(el => {
+      el.classList.toggle('active', el.dataset.priority === p);
+    });
+  };
+  
+  // ===== تسجيل خروج =====
+  window.handleLogout = async function() {
+    if (!confirm('هل تريد تسجيل الخروج؟')) return;
+    if (unsubscribeSnapshot) unsubscribeSnapshot();
+    await signOut(auth);
+    window.location.href = 'index.html';
+  };
+  
+  // ===== أدوات مساعدة =====
+  function getToday() {
+    return new Date().toISOString().split('T')[0];
+  }
+  
+  function formatDate(dateStr) {
+    const date = new Date(dateStr);
+    const days = ['الأحد', 'الإثنين', 'الثلاثاء', 'الأربعاء', 'الخميس', 'الجمعة', 'السبت'];
+    const months = ['يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو', 
+                    'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر'];
+    return `${days[date.getDay()]} ${date.getDate()} ${months[date.getMonth()]}`;
+  }
+  
+  function calcStreak(dates) {
+    if (!dates.length) return 0;
+    const sorted = [...dates].sort().reverse();
+    let streak = 0;
+    let current = new Date();
+    current.setHours(0,0,0,0);
+    const todayStr = getToday();
+    if (sorted[0] !== todayStr) current.setDate(current.getDate() - 1);
+    
+    for (let d of sorted) {
+      const currStr = current.toISOString().split('T')[0];
+      if (d === currStr) {
+        streak++;
+        current.setDate(current.getDate() - 1);
+      } else if (d < currStr) break;
+    }
+    return streak;
+  }
+  
+  function getSkillPercent(skill) {
+    return Math.min(Math.round((skill.completedDates.length / skill.targetDays) * 100), 100);
+  }
+  
+  function sortSkills(skills) {
+    return [...skills].sort((a, b) => {
+      const diff = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
+      if (diff !== 0) return diff;
+      return 0;
+    });
+  }
+  
+  function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+  }
+  
+  // ===== الرسم =====
+  function render() {
+    const list = document.getElementById('skillsList');
+    const today = getToday();
+    
+    if (appData.skills.length === 0) {
+      list.innerHTML = '<div class="empty-msg">لا توجد مهارات بعد. أضف أول مهارة! 🚀</div>';
+    } else {
+      const sorted = sortSkills(appData.skills);
+      
+      list.innerHTML = sorted.map(skill => {
+        const doneCount = skill.completedDates.length;
+        const percent = getSkillPercent(skill);
+        const isDoneToday = skill.completedDates.includes(today);
+        const streak = calcStreak(skill.completedDates);
+        const streakPercent = Math.min(Math.round((streak / skill.targetDays) * 100), 100);
+        const remainingPercent = Math.max(100 - percent, 0);
+        const hasHistory = doneCount > 0;
+        
+        return `
+          <div class="skill-card" data-priority="${skill.priority}">
+            <div class="skill-header">
+              <div class="skill-name-wrap">
+                <span class="priority-badge" data-priority="${skill.priority}">
+                  ${PRIORITY_NAMES[skill.priority]}
+                </span>
+                <div class="skill-name">${escapeHtml(skill.name)}</div>
+                <button class="edit-name-btn" onclick="openEditName('${skill.id}')" title="تعديل الاسم">✏️</button>
+              </div>
+              <div class="skill-percent-big">${percent}%</div>
+            </div>
+            
+            <div class="skill-progress">
+              <div class="skill-progress-fill" style="width: ${percent}%">${percent}%</div>
+            </div>
+            
+            <div class="skill-stats">
+              <div class="skill-stat">
+                <div class="skill-stat-value">${percent}%</div>
+                <div class="skill-stat-label">نسبة الإنجاز</div>
+              </div>
+              <div class="skill-stat">
+                <div class="skill-stat-value">${streakPercent}%</div>
+                <div class="skill-stat-label">الاستمرارية</div>
+              </div>
+              <div class="skill-stat">
+                <div class="skill-stat-value">${remainingPercent}%</div>
+                <div class="skill-stat-label">المتبقي</div>
+              </div>
+            </div>
+            
+            <div class="target-row">
+              <span>🎯 الهدف: 
+                <input type="number" value="${skill.targetDays}" min="1" max="365" 
+                  onchange="changeTarget('${skill.id}', this.value)">
+                يوم
+              </span>
+              <span>📅 أنجزت: ${doneCount} يوم</span>
+            </div>
+            
+            <div class="skill-actions">
+              <button class="done-btn" onclick="markDone('${skill.id}')" ${isDoneToday ? 'disabled' : ''}>
+                ${isDoneToday ? '✅ أنجزت اليوم' : '🎯 أنجزت اليوم'}
+              </button>
+              <button class="undo-btn" onclick="undoLastDone('${skill.id}')" ${!hasHistory ? 'disabled' : ''}>↩️ تراجع</button>
+              <button class="history-btn" onclick="openHistory('${skill.id}')">📅 السجل</button>
+              <button class="priority-btn" onclick="openEditPriority('${skill.id}')">🎚️ الأولوية</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+    
+    // الإحصائيات الكلية
+    const totalSkills = appData.skills.length;
+    let totalPercent = 0;
+    let completedSkills = 0;
+    let todayDone = 0;
+    let totalStreakPercent = 0;
+    
+    appData.skills.forEach(s => {
+      const p = getSkillPercent(s);
+      totalPercent += p;
+      if (p >= 100) completedSkills++;
+      if (s.completedDates.includes(today)) todayDone++;
+      const streak = calcStreak(s.completedDates);
+      totalStreakPercent += Math.min((streak / s.targetDays) * 100, 100);
+    });
+    
+    const overallPercent = totalSkills ? Math.round(totalPercent / totalSkills) : 0;
+    const completedPercent = totalSkills ? Math.round((completedSkills / totalSkills) * 100) : 0;
+    const todayPercent = totalSkills ? Math.round((todayDone / totalSkills) * 100) : 0;
+    const avgStreakPercent = totalSkills ? Math.round(totalStreakPercent / totalSkills) : 0;
+    
+    document.getElementById('overallFill').style.width = overallPercent + '%';
+    document.getElementById('overallFill').textContent = overallPercent + '%';
+    document.getElementById('overallPercent').textContent = overallPercent + '%';
+    document.getElementById('completedPercent').textContent = completedPercent + '%';
+    document.getElementById('todayPercent').textContent = todayPercent + '%';
+    document.getElementById('avgStreakPercent').textContent = avgStreakPercent + '%';
+  }
+  
+  // ===== إغلاق المودالات =====
+  document.getElementById('historyModal').addEventListener('click', e => {
+    if (e.target.id === 'historyModal') closeHistory();
+  });
+  document.getElementById('editNameModal').addEventListener('click', e => {
+    if (e.target.id === 'editNameModal') closeEditName();
+  });
+  document.getElementById('priorityModal').addEventListener('click', e => {
+    if (e.target.id === 'priorityModal') closeEditPriority();
+  });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      closeHistory(); closeEditName(); closeEditPriority();
+    }
+  });
+  document.getElementById('editNameInput').addEventListener('keypress', e => {
+    if (e.key === 'Enter') saveEditedName();
+  });
+</script>
+</body>
+</html>
