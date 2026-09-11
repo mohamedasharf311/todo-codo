@@ -866,19 +866,18 @@
     updateDoc,
     deleteDoc,
     onSnapshot,
-    query,
-    orderBy,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
   
-  // ===== إعدادات Firebase =====
+  // ===== ⚠️ ضع بيانات Firebase هنا (نفس بيانات index.html) =====
   const firebaseConfig = {
-    apiKey: "ضع_هنا_API_KEY",
-    authDomain: "ضع_هنا.firebaseapp.com",
-    projectId: "ضع_هنا",
-    storageBucket: "ضع_هنا.appspot.com",
-    messagingSenderId: "ضع_هنا",
-    appId: "ضع_هنا"
+      apiKey: "AIzaSyD6xACvN1UD1cHGZbC2eSU-V48i6IjQg5o",
+      authDomain: "todo-codo.firebaseapp.com",
+      projectId: "todo-codo",
+      storageBucket: "todo-codo.firebasestorage.app",
+      messagingSenderId: "78703052645",
+      appId: "1:78703052645:web:9ca9f565573a292a54c38c",
+      measurementId: "G-BVWK22L91W"
   };
   
   const app = initializeApp(firebaseConfig);
@@ -894,19 +893,36 @@
   let prioritySkillId = null;
   let newSkillPriority = 'critical';
   let selectedModalPriority = 'normal';
+  let hasLoadedSkills = false;
   
   const PRIORITY_ORDER = { critical: 3, important: 2, normal: 1 };
   const PRIORITY_NAMES = { critical: '🔴 مهم جداً', important: '🟠 مهم', normal: '🔵 عادي' };
   
   // ===== إدارة جلسة المستخدم =====
+  let authChecked = false;
+  
+  // timeout احتياطي: لو Firebase ما ردش خلال 8 ثواني
+  const authTimeout = setTimeout(() => {
+    if (!authChecked) {
+      console.warn('Auth timeout - redirecting to login');
+      window.location.replace('index.html');
+    }
+  }, 8000);
+  
   onAuthStateChanged(auth, (user) => {
+    authChecked = true;
+    clearTimeout(authTimeout);
+    
     if (user) {
+      // ✅ المستخدم مسجل دخول
       currentUser = user;
-      document.getElementById('userEmail').textContent = user.email;
-      document.getElementById('userAvatar').textContent = user.email[0].toUpperCase();
+      document.getElementById('userEmail').textContent = user.email || 'مستخدم';
+      document.getElementById('userAvatar').textContent = (user.email || 'U')[0].toUpperCase();
       startListeningToSkills();
     } else {
-      window.location.href = 'index.html';
+      // ❌ المستخدم مش مسجل → ارجع لتسجيل الدخول
+      if (unsubscribeSnapshot) unsubscribeSnapshot();
+      window.location.replace('index.html');
     }
   });
   
@@ -917,16 +933,17 @@
     const skillsRef = collection(db, 'users', currentUser.uid, 'skills');
     
     unsubscribeSnapshot = onSnapshot(skillsRef, (snapshot) => {
-      appData.skills = snapshot.docs.map(doc => {
-        const data = doc.data();
+      appData.skills = snapshot.docs.map(d => {
+        const data = d.data();
         return {
-          id: doc.id,
+          id: d.id,
           name: data.name || '',
           completedDates: data.completedDates || [],
           targetDays: data.targetDays || 30,
           priority: data.priority || 'normal'
         };
       });
+      hasLoadedSkills = true;
       render();
       setSyncStatus('synced');
     }, (error) => {
@@ -949,13 +966,13 @@
     }
   }
   
-  // ===== الحصول على مرجع مهارة =====
   function getSkillRef(skillId) {
     return doc(db, 'users', currentUser.uid, 'skills', skillId);
   }
   
   // ===== إضافة مهارة =====
   window.addSkill = async function() {
+    if (!currentUser) return;
     const input = document.getElementById('skillInput');
     const name = input.value.trim();
     if (!name) return alert('اكتب اسم المهارة أولاً');
@@ -1166,8 +1183,12 @@
   window.handleLogout = async function() {
     if (!confirm('هل تريد تسجيل الخروج؟')) return;
     if (unsubscribeSnapshot) unsubscribeSnapshot();
-    await signOut(auth);
-    window.location.href = 'index.html';
+    try {
+      await signOut(auth);
+      window.location.replace('index.html');
+    } catch (err) {
+      console.error(err);
+    }
   };
   
   // ===== أدوات مساعدة =====
@@ -1208,9 +1229,7 @@
   
   function sortSkills(skills) {
     return [...skills].sort((a, b) => {
-      const diff = PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
-      if (diff !== 0) return diff;
-      return 0;
+      return PRIORITY_ORDER[b.priority] - PRIORITY_ORDER[a.priority];
     });
   }
   
